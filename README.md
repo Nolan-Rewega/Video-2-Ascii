@@ -12,22 +12,24 @@ External library installation instructions.
 
     1. Go to https://www.glfw.org/download and download the latest version of the 'Source package'.
     2. create a directory called 'glfw' inside the 'lib' directory
-    3. extract the contents of glfw-X.X.X Source package to glfw.
+    3. extract the contents of glfw-X.X.X Source package to 'glfw'.
     path ex: ../Video-2-Ascii/lib/glfw/<cmake, docs, deps, ...etc>
     
   GLM:
   
     1. Go to https://github.com/g-truc/glm/releases/latest and download the latest version of glm-X.X.X.zip
-    2. create a directory called 'glm' and extracted the contents of glm-X.X to it
+    2. create a directory called 'glm' inside the 'lib' directory
+    3. extracted the contents of glm-X.X to 'glm'
     path ex: ../Video-2-Ascii/lib/glm/<cmake, docs, deps, ...etc>
 
   Freetype (Linux only):
 
     1. go to https://www.freetype.org/download.html and download the latest version
-    2. create a directory called 'freetype' and extract the downloaded contents to that directory
+    2. create a directory called 'freetype' inside the 'lib' directory 
+    3. extracted the contents of freetype-2.X.X to 'freetype'
     path ex: ../Video-2-Ascii/lib/freetype/<builds, devel, docs, ...etc>
     
-    3. cd into ../Video-2-Ascii/lib/freetype directory
+    4. cd into ../Video-2-Ascii/lib/freetype directory
       run commands in order:
           cmake -E make_directory build
           cmake -E chdir build cmake ..
@@ -36,7 +38,7 @@ External library installation instructions.
   
   ffmpeg and pgk-config:
   
-    1. install simply through the command line.
+    1. install via the command line.
     
 Cmake Compilation instructions:
   1. run Cmake in the Video-2-Ascii directory setting 'src' as the source directory and 'out' as the build directory.
@@ -44,4 +46,4 @@ Cmake Compilation instructions:
   3. run V2A.exe
 
 # Video demo
-to be added
+TODO
