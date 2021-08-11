@@ -1,4 +1,7 @@
-# Video-2-Ascii
+# Info
+This program converts MP4 image data to ASCII characters in real time and display them via OpenGL.
+
+# Instalation
 This program uses external five external libraries: ffmpeg, GLFW (openGL), GLM, FreeType, pkg-config.
 Recommended library versions are: GLFW 3.0+, FreeType 2.1, GLM 0.9+, 
 
