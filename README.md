@@ -1,10 +1,10 @@
 # Video-2-Ascii
-This program uses external four external libraries: ffmpeg, GLFW (openGL), GLM, FreeType, pkg-config.
+This program uses external five external libraries: ffmpeg, GLFW (openGL), GLM, FreeType, pkg-config.
 Recommended library versions are: GLFW 3.0+, FreeType 2.1, GLM 0.9+, 
 
 Linux is needed.
 
-Before installation, create two new directories called 'out' and 'lib' inside 'Video-2-Ascii'.
+Before installation, create a new directories called 'out' inside 'Video-2-Ascii'.
 
 External library installation instructions.
 
@@ -23,8 +23,10 @@ External library installation instructions.
 
   Freetype (Linux only):
 
-    1. go to https://www.freetype.org/download.html and download 
-    2. create a directory called 'freetype' and contents to that directory
+    1. go to https://www.freetype.org/download.html and download the latest version
+    2. create a directory called 'freetype' and extract the downloaded contents to that directory
+    path ex: ../Video-2-Ascii/lib/freetype/<builds, devel, docs, ...etc>
+    
     3. cd into ../Video-2-Ascii/lib/freetype directory
       run commands in order:
           cmake -E make_directory build
