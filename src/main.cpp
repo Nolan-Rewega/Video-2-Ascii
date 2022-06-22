@@ -13,7 +13,7 @@ int main(int argc, char *argv[]){
     */
 
     /* Raw video data */
-    Parser video_parser = Parser("/home/shadow/code/Video-2-Ascii/src/videos/kakashi.mp4");
+    Parser video_parser = Parser("/home/shadow/code/Video-2-Ascii/src/videos/social.mp4");
     int width = video_parser.get_frame_width();
     int height = video_parser.get_frame_height();
     

@@ -108,14 +108,8 @@ bool DisplayGL::init(){
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
-    // -- Usable ascii chars
-    int legal_chars[9] = {35, 36, 37, 38, 42, 45, 46, 47, 63};
-    int c;
-
-    // -- loading each legal char into char_map
-    for(int i = 0; i < sizeof(legal_chars) / 4; i++){
-        c = legal_chars[i];
-
+    // -- loading all renderable ASCII chars into char_map
+    for(char c = 32; c < 127; c++){
         if( FT_Load_Char(face, c, FT_LOAD_RENDER) ){
             cout << " FAILED TO LOAD GLYPH: " << c << "\n";
             continue;
