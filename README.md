@@ -49,4 +49,4 @@ Cmake Compilation instructions:
   3. run V2A.exe
 
 # Video demo
-TODO
+[Demo Video](https://www.youtube.com/watch?v=weGYrn5RfOY)
