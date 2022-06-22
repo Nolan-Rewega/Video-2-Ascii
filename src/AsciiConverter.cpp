@@ -1,5 +1,4 @@
 #include"AsciiConverter.h"
-#include <fstream>
 
 /*
     Goal of this file is to convset frame data into ASCII chars.
@@ -7,9 +6,6 @@
 
 string toAscii(int target_width, int target_height, int frame_width, int frame_height, unsigned char** data){
     
-    ofstream file;
-    file.open("log.txt");
-
     /* defining buffers */
     string ascii_array;
     unsigned char frame_luma;
@@ -26,16 +22,8 @@ string toAscii(int target_width, int target_height, int frame_width, int frame_h
         {2,  "-"}, {1,  "."}, {0,  " "}
     };
 
-    /*
-    map <int, const char*> usable_chars = {
-        {8, "#"}, {7, "&"}, {6, "%"},
-        {5, "$"},  {4, "?"},  {3, "/"},
-        {2, "*"},  {1, "-"},  {0, "."}
-    };
-    */
     /* luma_threashold */
     double luma_threashold = 255 / (usable_chars.size() - 1);
-    //file << luma_threashold << endl;
     int skip_w = frame_width / target_width;
     int skip_h = frame_height / target_height;
     int key;
@@ -45,7 +33,6 @@ string toAscii(int target_width, int target_height, int frame_width, int frame_h
         for(int w = 0; w < frame_width; w += skip_w){
             frame_luma = (*data)[frame_width * h + w];
             key = (int)frame_luma / luma_threashold;
-            
             ascii_array.append(usable_chars[key]);
         }
     }
