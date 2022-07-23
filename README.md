@@ -17,7 +17,7 @@ Additional programs:
  
 
 # Installation
-Inside the cloned repo directory 'Video-2-Ascii' create two directories called 'out' and 'lib'. 
+Inside the cloned repo 'Video-2-Ascii' create a new directory called 'out'. 
 
 External library installation instructions.
 
