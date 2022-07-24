@@ -27,6 +27,8 @@ list(APPEND SOURCES
     src/FrameParser.cpp
     src/RenderText.h
     src/RenderText.cpp
+    src/FontSystem.h
+    src/FontSystem.cpp
     src/main.cpp
 )
 set(GLAD "${GLFW_SOURCE_DIR}/deps/glad/gl.h"
