@@ -31,10 +31,11 @@ public:
     /* frame and packet data*/
     AVFrame* av_frame;
     AVPacket* av_packet;
-    
-    /* time base data */
+
+    /* time base data*/
     AVRational time_base;
     int64_t curr_pts;
+
 
     /* Public method decleration*/
     Parser(const char* file);

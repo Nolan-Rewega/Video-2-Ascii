@@ -2,8 +2,8 @@
 #define RENDERTEXT_H
 
 #include<iostream>
+#include<fstream>
 #include<string>
-#include<map>
 
 #include<glad/gl.h>
 #include<GLFW/glfw3.h>
@@ -12,58 +12,39 @@
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
 
-#include<ft2build.h>
-#include FT_FREETYPE_H
+#include"FontSystem.h"
 
 using namespace std;
 
-/* The structure for holding a Character */
-struct Character{
-    unsigned int texture_id;
-    unsigned int advance;
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-};
 
 class DisplayGL{
-public:
-    /* Screen size attributes*/
-    unsigned int WIDTH;
-    unsigned int HEIGHT;
-    unsigned int TEXT_SIZE;
-    float* RGB_PTR;
-
-    /* Character map */
-    map<GLchar, Character> char_table;
-
-    /* Error flag*/
-    bool INIT_ERROR;
-
+private:
     /* Buffers */
-    unsigned int VBO;
-    unsigned int VAO;
+    unsigned int VBO, VAO, program;
+    float TARGET_W, TARGET_H, DISPLAY_W, DISPLAY_H;
+
+    FontSystem* fSys;
+    GLuint atlasID;
     
-    /* shaders*/
-    const char* vertex_shader_src;
-    const char* fragment_shader_src;
-    unsigned int vertex;
-    unsigned int fragment;
-   
-    unsigned int program;
-
-
-    /* GLFW window */
     GLFWwindow* window;
-    
+
+    string readShaderCode(const char* fileName);
+
+public:
     /* Methods */
-    DisplayGL(unsigned int w, unsigned int h, unsigned int text_size, float rgb_ptr[3]);
-    bool init();
+    DisplayGL( float WIDTH,
+               float HEIGHT,
+               float TARGETWIDTH,
+               float TARGETHEIGHT,
+               unsigned int TEXTSIZE
+    );
+
     void exit();
     void background();
     void post_render();
     void check_input();
     int check_termination();
-    void render_text(string text, float x, float y, float scale);
+    void render_text( string text, float scale );
 
 };
 

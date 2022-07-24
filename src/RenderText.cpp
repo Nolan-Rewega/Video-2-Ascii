@@ -1,17 +1,35 @@
 #include"RenderText.h"
 
-DisplayGL::DisplayGL(unsigned int w, unsigned int h, unsigned int text_size, float rgb_ptr[3]){
-    WIDTH = w;  HEIGHT = h;
-    
-    TEXT_SIZE = text_size;
-    RGB_PTR = rgb_ptr;
-    
-    INIT_ERROR = init();
-}
+DisplayGL::DisplayGL( float WIDTH, 
+                      float HEIGHT,
+                      float TARGETWIDTH,
+                      float TARGETHEIGHT,
+                      unsigned int TEXTSIZE)
+{
+    fSys = new FontSystem(
+        "/home/shadow/code/Video-2-Ascii/src/fonts/Hack-Regular.ttf",
+        TEXTSIZE,
+        "FontAtlas.bmp"
+    );
+    fSys->generateFontAtlas();
 
-bool DisplayGL::init(){
+    //color = glm::vec3(1.0f, 1.0f, 1.0f);
+    TARGET_W = TARGETWIDTH;
+    TARGET_H = TARGETHEIGHT;
+    DISPLAY_W = WIDTH;
+    DISPLAY_H = HEIGHT;
+
+
+    /* load shader src's */
+    string TVSSinput = readShaderCode("../src/TVSS.glsl");
+    string TFSSinput = readShaderCode("../src/TFSS.glsl");
+    const char* VSS = TVSSinput.c_str();
+    const char* FSS = TFSSinput.c_str();
+    
+
     /* initializing openGL */
     glfwInit();
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -19,74 +37,62 @@ bool DisplayGL::init(){
     /* Create the OpenGL window */
     window = glfwCreateWindow(WIDTH, HEIGHT, "Video 2 Ascii", NULL, NULL);
     if(window == NULL){
-        cout << "GLFW window init error.";
-        glfwTerminate(); return false;
+        cout << "ERROR IN DISPLAYGL::DISPLAYGL, could not create glfw Window.\n";
+        std::exit(-10);
     }
     glfwMakeContextCurrent(window);
     gladLoadGL(glfwGetProcAddress);
     glViewport(0, 0, WIDTH, HEIGHT);
 
-    /* enabaling color blending and culling (might not be needed) */
+    // -- Enabling Culling and texture blending.
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    /* shader src's */
-    // -- I have no idea what these shaders do
-    const char* vertex_shader_src = "#version 330 core\n"
-    "layout (location = 0) in vec4 vertex;\n"
-    "out vec2 TexCoords;\n"
-    "uniform mat4 projection;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * vec4(vertex.xy, 0.0, 1.0);\n"
-    "   TexCoords = vertex.zw;\n"
-    "}\0";
-    
-    // -- I have no idea what these shaders do
-    const char* fragment_shader_src = "#version 330 core\n"
-    "in vec2 TexCoords;\n"
-    "out vec4 color;\n"
-    "uniform sampler2D text;\n"
-    "uniform vec3 textColor;\n"
-    "void main()\n"
-    "{\n"
-    "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture(text, TexCoords).r);\n"
-    "   color = vec4(textColor, 1.0) * sampled;\n"
-    "}\n\0";
-    
-    /* shader and program decleration and activation */
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vertex_shader_src, NULL);
-    glCompileShader(vertex);
 
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fragment_shader_src, NULL);
+    // -- Shader Activation
+    GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    program = glCreateProgram();
+    
+    glShaderSource(vertex, 1, &VSS, NULL);
+    glShaderSource(fragment, 1, &FSS, NULL);
+    glCompileShader(vertex);
     glCompileShader(fragment);
 
-    program = glCreateProgram();
     glAttachShader(program, vertex);
     glAttachShader(program, fragment);
     glLinkProgram(program);
     
-    // -- shader deletion
+    // -- Shader Deletion
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     
     /* modify a floating typed uniform variable array*/
-    // -- not sure why a 4x4 matrix is needed (prob just RGBA values) 
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), 0.0f,static_cast<float>(HEIGHT));
+    // -- We use the matrix to project from screen pixel space (0, 800)
+    // -- to openGl world space (-1.0, 1.0).
+    glm::mat4 projection = glm::ortho( 0.0f,
+                                       static_cast<float>(WIDTH),
+                                       0.0f,
+                                       static_cast<float>(HEIGHT)
+    );
     glUseProgram(program);
-    glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv( glGetUniformLocation(program, "projection"),
+                        1,
+                        GL_FALSE,
+                        glm::value_ptr(projection)
+    );
 
     
     /* Init VAO and VBO */
+    // -- One pixel = One Ascii Char.
+    int bufferSize = sizeof(float) * 6 * 4 * (TARGETWIDTH * TARGETHEIGHT);
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_DYNAMIC_DRAW);
     
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float)*4, 0);
@@ -95,57 +101,45 @@ bool DisplayGL::init(){
     glBindVertexArray(0);
 
 
-    /* FreeType initialization */
-    const char* font = "/home/shadow/code/Video-2-Ascii/src/fonts/Hack-Regular.ttf";
-    FT_Library ft;
-    FT_Face face;
+    /* creating a texture from a font atlas*/
+    glGenTextures(1, &atlasID);
+    glBindTexture(GL_TEXTURE_2D, atlasID);
     
-    if (FT_Init_FreeType(&ft)) { cout << "Error Initializing freetype.\n"; return false; }
-    if (FT_New_Face(ft, font, 0, &face)) { cout << "Error loading font.\n"; return false; }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    /* Set the width of the text*/
-    FT_Set_Pixel_Sizes(face, 0, TEXT_SIZE);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        fSys->getAtlasWidth(),
+        fSys->getAtlasHeight(),
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        fSys->m_atlasData
+    );
     
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    
-    // -- loading all renderable ASCII chars into char_map
-    for(char c = 32; c < 127; c++){
-        if( FT_Load_Char(face, c, FT_LOAD_RENDER) ){
-            cout << " FAILED TO LOAD GLYPH: " << c << "\n";
-            continue;
-        }
-        
-        /* creating a texture from ascii char c */
-        unsigned int texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexImage2D(
-            GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width,
-            face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE,
-            face->glyph->bitmap.buffer
-            );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        /*  store the texture into 'Character' struct to store int char_table */
-        Character c_tex = {
-            texture,
-            static_cast<unsigned int>(face->glyph->advance.x),
-            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top)
-        };
-        char_table.insert(pair<char, Character>(c, c_tex));
-    }
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    /* free up freetype variables */
-    FT_Done_Face(face);
-    FT_Done_FreeType(ft);
-    
-    return true;
 }
+
+
+string DisplayGL::readShaderCode(const char* fileName){
+    string shader, line;
+    ifstream inputFile(fileName);
+    if(!inputFile.good()){
+        cout << "ERROR, " << fileName << "NOT FOUND. In DisplayGL::readShaderCode()\n";
+        std::exit(-11);
+    }
+    while(getline(inputFile, line)){
+        shader.append(line);
+        shader.append("\n");
+    }
+    return shader;
+}
+
 
 void DisplayGL::check_input(){
     /* Polling for escape key press */
@@ -173,49 +167,71 @@ void DisplayGL::post_render(){
 }
 
 
-void DisplayGL::render_text(string text, float x, float y, float scale){
-    /* Prepair to load text teture */
-    glUseProgram(program);
-    glUniform3f(glGetUniformLocation(program, "textColor"), RGB_PTR[0], RGB_PTR[1], RGB_PTR[2]);
-    glActiveTexture(GL_TEXTURE0);
+void DisplayGL::render_text( string text, float scale){
+
+    // -- Bind buffers and textures
     glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, atlasID);
+
+    float ASPECT_H = DISPLAY_H / TARGET_H;
+
+    int offset = 0;
+    float x = 0;
+    float y = 0;
     
-    for(int i = 0; i < text.size(); i++){
-        /* retrieve char_texture information from char_table*/
-        Character c = char_table[text[i]];
-        
-        float xpos = x + c.bearing.x * scale;
-        float ypos = y - (c.size.y - c.bearing.y) * scale;
+    // -- loops O(WIDTH * HEIGHT) times.
+    for(int r = 0; r < TARGET_H; ++r){
+        x = 0;
+        y = r * ASPECT_H;
+        for(int c = 0; c < TARGET_W; ++c){
+            // -- Retrieve Char's Glyph info.
+            int idx = (TARGET_H - r - 1) * ((int)TARGET_W) + c;
+            FontSystem::Glyph ch = fSys->getCharacterInformation(text[idx]);
+            
+            float xpos = x + ch.bearingX;
+            float ypos = y - (ch.height - ch.bearingY);
+            float w = ch.width * scale;
+            float h = ch.height * scale;
+            
+            // -- Create a Quad to hold the position and texture coords.
+            float vertices[6][4] = {
+                { xpos,     ypos + h,   ch.atlasLeft,    ch.atlasTop},
+                { xpos,     ypos,       ch.atlasLeft,    ch.atlasBottom},
+                { xpos + w, ypos,       ch.atlasRight,   ch.atlasBottom},
 
-        // -- width and height
-        float w = c.size.x * scale;
-        float h = c.size.y * scale;
-        
-        // -- creates the vertice array where to disaplay text
-        float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f},
-            { xpos,     ypos,       0.0f, 1.0f},
-            { xpos + w, ypos,       1.0f, 1.0f},
-
-            { xpos,     ypos + h,   0.0f, 0.0f},
-            { xpos + w, ypos,       1.0f, 1.0f},
-            { xpos + w, ypos + h,   1.0f, 0.0f}
-        };
-        /* Bind the char texture */
-        glBindTexture(GL_TEXTURE_2D, c.texture_id);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        
-        /* Display texture as trianglesv */
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        x += (c.advance >> 6) * scale;
+                { xpos,     ypos + h,   ch.atlasLeft,    ch.atlasTop},
+                { xpos + w, ypos,       ch.atlasRight,   ch.atlasBottom},
+                { xpos + w, ypos + h,   ch.atlasRight,   ch.atlasTop}
+            };
+            
+            // -- Added texture Quad to the buffer.
+            glBufferSubData(GL_ARRAY_BUFFER,
+                            offset,
+                            sizeof(vertices),
+                            vertices
+            );
+            offset += sizeof(vertices);
+            x += (ch.advance >> 6) * scale;
+        }
     }
-    /* clear VAO, and un-bind char texture */
+
+    // -- Draw !
+    glUseProgram(program);
+    glDrawArrays(GL_TRIANGLES, 0, text.length() * 6);
+    
+    // -- Unbind buffers and textures
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
-void DisplayGL::exit(){glfwTerminate();}
+void DisplayGL::exit(){
+    glfwTerminate();
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    delete fSys;
+}
 
