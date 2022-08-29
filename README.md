@@ -1,5 +1,5 @@
 # Info
-This program converts MP4 image data to ASCII characters in real time and display them via OpenGL.
+This program converts MP4 image data to ASCII characters in real time.
 
 # Project Dependencies
 External libraries: 
