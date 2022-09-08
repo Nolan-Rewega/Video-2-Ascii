@@ -15,6 +15,8 @@ Additional programs:
 
 *This project only supports Linux distros.  *
  
+# Video demo
+[Demo Video](https://www.youtube.com/watch?v=weGYrn5RfOY)
 
 # Installation
 Inside the cloned repo 'Video-2-Ascii' create a new directory called 'out'. 
@@ -54,5 +56,4 @@ Cmake Compilation instructions:
   2. Run the Makefile created in 'out', this should create a executable file called V2A.
   3. Run V2A.exe
 
-# Video demo
-[Demo Video](https://www.youtube.com/watch?v=weGYrn5RfOY)
+
