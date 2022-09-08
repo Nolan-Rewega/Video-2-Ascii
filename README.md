@@ -1,6 +1,9 @@
 # Info
 This program converts MP4 image data to ASCII characters in real time.
 
+# Video demo
+[Demo Video](https://www.youtube.com/watch?v=weGYrn5RfOY)
+
 # Project Dependencies
 External libraries: 
   1. ffmpeg  
@@ -15,9 +18,6 @@ Additional programs:
 
 *This project only supports Linux distros.  *
  
-# Video demo
-[Demo Video](https://www.youtube.com/watch?v=weGYrn5RfOY)
-
 # Installation
 Inside the cloned repo 'Video-2-Ascii' create a new directory called 'out'. 
 
